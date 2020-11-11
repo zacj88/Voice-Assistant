@@ -5,22 +5,17 @@ from datetime import datetime
 import webbrowser
 import pyttsx3
 
-# make an instance of Recognizer class
-r = sr.Recognizer()
 
-# confs for pyttsx3
+r = sr.Recognizer()
 engine = pyttsx3.init()
 
-""" speak (text to speech) """
-
-
+# turning text to speech.
 def speak(text):
     engine.say(text)
     engine.runAndWait()
 
 
-""" fn to recognize our voice and return the text_version of it"""
-
+# function to return a text version of our speech
 def recognize_voice():
     text = ''
 
@@ -42,32 +37,31 @@ def recognize_voice():
     return text.lower()
 
 
-""" fn to respond back """
 
-
-def reply(text_version):
+# returns a message depending on the users speech, collected from recognize_voice().
+def reply(speech_text):
     # name
-    if "what is your name" in text_version:
+    if "what is your name" in speech_text:
         speak("My name is JARVIS")
 
     # how are you?
-    if "how are you" in text_version:
+    if "how are you" in speech_text:
         speak("I am fine...")
 
     # date
-    if "what is the date" in text_version:
+    if "what is the date" in speech_text:
         # get today's date and format it - 9 November 2020
         date = datetime.now().strftime("%-d %B %Y")
         speak(date)
 
     # time
-    if "what is the time" in text_version:
+    if "what is the time" in speech_text:
         # get current time and format it like - 02 28
         time = datetime.now().time().strftime("%H %M")
         speak("The time is " + time)
 
     # search google
-    if "search" in text_version:
+    if "search" in speech_text:
         speak("What do you want me to search for?")
         keyword = recognize_voice()
 
@@ -81,16 +75,16 @@ def reply(text_version):
             sleep(3)
 
     # quit/exit
-    if "quit" in text_version or "exit" in text_version:
+    if "quit" in speech_text or "exit" in speech_text or "bye" in speech_text:
         speak("Ok, I am going to take a nap...")
         exit()
 
 
-# wait a second for adjust_for_ambient_noise() to do its thing
-sleep(5)
+# wait 4 seconds for adjust_for_ambient_noise() to do its thing
+sleep(4)
 
 while True:
-    speak("Is there anything else you would like to know...")
+    speak("Is there anything I can help you with...")
     # listen for voice and convert it into text format
     text_version = recognize_voice()
 
