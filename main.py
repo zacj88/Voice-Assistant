@@ -75,18 +75,39 @@ def reply(speech_text):
             sleep(3)
 
     # quit/exit
-    if "quit" in speech_text or "exit" in speech_text or "bye" in speech_text:
+    if "quit" in speech_text or "bye" in speech_text or "no" in speech_text:
         speak("Ok, I am going to take a nap...")
         exit()
 
+def greeting():
+    hour = int(datetime.now().hour)
+    if 0 <= hour < 12:
+        speak("Good Morning, sir!")
 
-# wait 4 seconds for adjust_for_ambient_noise() to do its thing
-sleep(4)
+    elif 12 <= hour < 18:
+        speak("Good Afternoon, sir!")
 
-while True:
-    speak("Is there anything I can help you with...")
-    # listen for voice and convert it into text format
-    text_version = recognize_voice()
+    else:
+        speak("Good Evening, sir!")
 
-    # give "text_version" to reply() fn
-    reply(text_version)
+    speak("I am Jarvis. What can I help you with?")
+
+
+# wait 2 seconds for adjust_for_ambient_noise() to do its thing
+sleep(2)
+
+def chat():
+    counter = 0
+    while True:
+        if counter < 1:
+            greeting()
+            speech = recognize_voice()   # listen for voice and convert it into text format
+            reply(speech)   # give "text_version" to reply()
+            counter =+ 1
+        else:
+            speak("Is there anything else i can do for you today.")
+            speech = recognize_voice()
+            reply(speech)
+
+
+chat()
