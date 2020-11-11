@@ -4,6 +4,8 @@ from time import sleep
 from datetime import datetime
 import webbrowser
 import pyttsx3
+import requests
+from bs4 import BeautifulSoup
 
 
 r = sr.Recognizer()
@@ -33,7 +35,7 @@ def recognize_voice():
         except sr.RequestError:
             speak("Sorry, the I can't access the Google API...")
         except sr.UnknownValueError:
-            speak("Sorry, I am unable to recognize your speech...")
+            speak("Sorry, can you repeat that sir...")
     return text.lower()
 
 
@@ -74,40 +76,94 @@ def reply(speech_text):
             webbrowser.open(url)
             sleep(3)
 
+    # news
+    if "what is the headline news" in speech_text:
+        headline_list = []
+        intro_list = []
+
+        speak("Would you like normal news or business news")
+        news_type = recognize_voice()
+
+        if news_type == "normal":
+            print("....Initialising response")
+            url = "https://www.bbc.co.uk/news"
+            page = requests.get(url)  # Get access to the BBC news page
+
+            soup = BeautifulSoup(page.content, 'html.parser')
+            headline = soup.find('a', class_="gs-c-promo-heading")
+            intro = soup.find('p', class_="gs-c-promo-summary")
+
+            title = headline.get_text()
+            headline_list.append(title)
+            paragraph = intro.get_text()
+            intro_list.append(paragraph)
+
+            speak("Here is the main headline")
+            speak(str(headline_list))
+            speak(str(intro_list))
+
+        elif news_type == "business":
+            print("....Initialising response")
+            url = "https://www.bbc.co.uk/news/business"
+            page = requests.get(url)  # Get access to the BBC business news page
+
+            soup = BeautifulSoup(page.content, 'html.parser')
+            headline = soup.find('a', class_="gs-c-promo-heading")
+            intro = soup.find('p', class_="gs-c-promo-summary")
+
+            title = headline.get_text()
+            headline_list.append(title)
+            paragraph = intro.get_text()
+            intro_list.append(paragraph)
+
+            speak("Here is the main business headline")
+            speak(str(headline_list))
+            speak(str(intro_list))
+
+        else:
+            print("....Initialising response")
+            speak("Sorry I cannot seem to find this")
+
+
     # quit/exit
     if "quit" in speech_text or "bye" in speech_text or "no" in speech_text:
-        speak("Ok, I am going to take a nap...")
+        speak("Ok, see you later")
+        print("Jarvis shutting down")
         exit()
 
 def greeting():
     hour = int(datetime.now().hour)
     if 0 <= hour < 12:
-        speak("Good Morning, sir!")
+        speak("Good Morning sir!")
 
     elif 12 <= hour < 18:
-        speak("Good Afternoon, sir!")
+        speak("Good Afternoon sir!")
 
     else:
-        speak("Good Evening, sir!")
+        speak("Good Evening sir!")
 
     speak("I am Jarvis. What can I help you with?")
 
 
 # wait 2 seconds for adjust_for_ambient_noise() to do its thing
-sleep(2)
+# sleep(2)
 
-def chat():
+if __name__ == '__main__':
     counter = 0
     while True:
         if counter < 1:
+            print("Jarvis activated")
             greeting()
-            speech = recognize_voice()   # listen for voice and convert it into text format
+            speech = recognize_voice() # listen for voice and convert it into text format
+            print("....Initialising response")
+            sleep(3)
             reply(speech)   # give "text_version" to reply()
             counter =+ 1
         else:
-            speak("Is there anything else i can do for you today.")
+            speak("Is there anything else I can do for you today.")
             speech = recognize_voice()
+            print("....Initialising response")
+            sleep(3)
             reply(speech)
 
 
-chat()
