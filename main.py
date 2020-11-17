@@ -6,7 +6,9 @@ import webbrowser
 import pyttsx3
 import requests
 from bs4 import BeautifulSoup
-
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+import config
 
 r = sr.Recognizer()
 engine = pyttsx3.init()
@@ -77,57 +79,44 @@ def reply(speech_text):
             sleep(3)
 
     # news
-    if "what is the headline news" in speech_text:
+    if "what are the  headlines" in speech_text:
         headline_list = []
         intro_list = []
 
-        speak("Would you like normal news or business news")
-        news_type = recognize_voice()
+        print("....Initialising response")
+        url = "https://www.bbc.co.uk/news"
+        page = requests.get(url)  # Get access to the BBC news page
 
-        if news_type == "normal":
-            print("....Initialising response")
-            url = "https://www.bbc.co.uk/news"
-            page = requests.get(url)  # Get access to the BBC news page
+        soup = BeautifulSoup(page.content, 'html.parser')
+        headline = soup.find('a', class_="gs-c-promo-heading")
+        intro = soup.find('p', class_="gs-c-promo-summary")
 
-            soup = BeautifulSoup(page.content, 'html.parser')
-            headline = soup.find('a', class_="gs-c-promo-heading")
-            intro = soup.find('p', class_="gs-c-promo-summary")
+        title = headline.get_text()
+        headline_list.append(title)
+        paragraph = intro.get_text()
+        intro_list.append(paragraph)
 
-            title = headline.get_text()
-            headline_list.append(title)
-            paragraph = intro.get_text()
-            intro_list.append(paragraph)
+        speak("Here is the main headline")
+        speak(str(headline_list))
+        speak(str(intro_list))
+        print(headline_list)
 
-            speak("Here is the main headline")
-            speak(str(headline_list))
-            speak(str(intro_list))
+    # music
+    if "music" in speech_text:
+        sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=config.api_key,
+                                                                   client_secret=config.api_secret))
+        speak("What artist would you like to know about")
+        artist = recognize_voice()
 
-        elif news_type == "business":
-            print("....Initialising response")
-            url = "https://www.bbc.co.uk/news/business"
-            page = requests.get(url)  # Get access to the BBC business news page
-
-            soup = BeautifulSoup(page.content, 'html.parser')
-            headline = soup.find('a', class_="gs-c-promo-heading")
-            intro = soup.find('p', class_="gs-c-promo-summary")
-
-            title = headline.get_text()
-            headline_list.append(title)
-            paragraph = intro.get_text()
-            intro_list.append(paragraph)
-
-            speak("Here is the main business headline")
-            speak(str(headline_list))
-            speak(str(intro_list))
-
-        else:
-            print("....Initialising response")
-            speak("Sorry I cannot seem to find this")
-
+        if artist != '':
+            results = sp.search(q=artist, type="album", limit=20)
+            for idx, album in enumerate(results['albums']['items']):
+                print(idx, album['name'])
+            speak("Here are the albums released by  " + artist)
 
     # quit/exit
     if "quit" in speech_text or "bye" in speech_text or "no" in speech_text:
-        speak("Ok, see you later")
+        speak("Ok, goodbye")
         print("Jarvis shutting down")
         exit()
 
@@ -142,28 +131,30 @@ def greeting():
     else:
         speak("Good Evening sir!")
 
-    speak("I am Jarvis. What can I help you with?")
+    speak("What can I help you with?")
 
 
 # wait 2 seconds for adjust_for_ambient_noise() to do its thing
 # sleep(2)
 
-if __name__ == '__main__':
+def talk():
     counter = 0
     while True:
         if counter < 1:
             print("Jarvis activated")
-            greeting()
             speech = recognize_voice() # listen for voice and convert it into text format
-            print("....Initialising response")
-            sleep(3)
-            reply(speech)   # give "text_version" to reply()
-            counter =+ 1
+            if "jarvis" in speech:
+                print("....Initialising response")
+                greeting()
+                sleep(3)
+                reply(speech)   # give "text_version" to reply()
+                counter =+ 1
         else:
-            speak("Is there anything else I can do for you today.")
             speech = recognize_voice()
             print("....Initialising response")
             sleep(3)
             reply(speech)
 
 
+if __name__ == '__main__':
+    talk()
